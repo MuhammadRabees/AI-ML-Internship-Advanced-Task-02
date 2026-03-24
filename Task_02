@@ -1,0 +1,577 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOlNBSf7ghd8fEf1kAxeJYK",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/MuhammadRabees/AI-ML-Internship-Advanced-Task-02/blob/main/Task_02\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "\n",
+        "**Problem Statement:**\n",
+        "\n",
+        "Customer churn (when customers leave a service) is a major revenue killer for telecom companies. Manually identifying which customers are at risk of leaving is impossible at scale. We need an automated, production-ready system that can process raw customer data and predict churn accurately.\n",
+        "\n",
+        "\n",
+        "**Objective:**  \n",
+        "\n",
+        "Build a reusable and production-ready machine learning pipeline for predicting customer churn. Specifically, this project involves:\n",
+        "\n",
+        "* Loading the Telco Churn Dataset.\n",
+        "\n",
+        "* Implementing data preprocessing steps (scaling, encoding) using Scikit-Learn's Pipeline.\n",
+        "\n",
+        "* Training a machine learning model (Random Forest).\n",
+        "\n",
+        "* Using GridSearchCV for hyperparameter tuning to find the best model parameters.\n",
+        "\n",
+        "* Exporting the complete, trained pipeline using joblib for future reusability."
+      ],
+      "metadata": {
+        "id": "dmOh1BW3QG7W"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**Step 1: Load Data & Clean Up**"
+      ],
+      "metadata": {
+        "id": "1epBhUbDQprx"
+      }
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 314
+        },
+        "id": "o0j2p3qjP6Q9",
+        "outputId": "4226101e-8a3d-4074-bc42-4cd17284d1b9"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Dataset Loaded! Shape of X: (7032, 19)\n"
+          ]
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "   gender  SeniorCitizen Partner Dependents  tenure PhoneService  \\\n",
+              "0  Female              0     Yes         No       1           No   \n",
+              "1    Male              0      No         No      34          Yes   \n",
+              "2    Male              0      No         No       2          Yes   \n",
+              "3    Male              0      No         No      45           No   \n",
+              "4  Female              0      No         No       2          Yes   \n",
+              "\n",
+              "      MultipleLines InternetService OnlineSecurity OnlineBackup  \\\n",
+              "0  No phone service             DSL             No          Yes   \n",
+              "1                No             DSL            Yes           No   \n",
+              "2                No             DSL            Yes          Yes   \n",
+              "3  No phone service             DSL            Yes           No   \n",
+              "4                No     Fiber optic             No           No   \n",
+              "\n",
+              "  DeviceProtection TechSupport StreamingTV StreamingMovies        Contract  \\\n",
+              "0               No          No          No              No  Month-to-month   \n",
+              "1              Yes          No          No              No        One year   \n",
+              "2               No          No          No              No  Month-to-month   \n",
+              "3              Yes         Yes          No              No        One year   \n",
+              "4               No          No          No              No  Month-to-month   \n",
+              "\n",
+              "  PaperlessBilling              PaymentMethod  MonthlyCharges  TotalCharges  \n",
+              "0              Yes           Electronic check           29.85         29.85  \n",
+              "1               No               Mailed check           56.95       1889.50  \n",
+              "2              Yes               Mailed check           53.85        108.15  \n",
+              "3               No  Bank transfer (automatic)           42.30       1840.75  \n",
+              "4              Yes           Electronic check           70.70        151.65  "
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-e8ca9919-5262-4731-8708-0ddeface5a8a\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>gender</th>\n",
+              "      <th>SeniorCitizen</th>\n",
+              "      <th>Partner</th>\n",
+              "      <th>Dependents</th>\n",
+              "      <th>tenure</th>\n",
+              "      <th>PhoneService</th>\n",
+              "      <th>MultipleLines</th>\n",
+              "      <th>InternetService</th>\n",
+              "      <th>OnlineSecurity</th>\n",
+              "      <th>OnlineBackup</th>\n",
+              "      <th>DeviceProtection</th>\n",
+              "      <th>TechSupport</th>\n",
+              "      <th>StreamingTV</th>\n",
+              "      <th>StreamingMovies</th>\n",
+              "      <th>Contract</th>\n",
+              "      <th>PaperlessBilling</th>\n",
+              "      <th>PaymentMethod</th>\n",
+              "      <th>MonthlyCharges</th>\n",
+              "      <th>TotalCharges</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>Female</td>\n",
+              "      <td>0</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>1</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No phone service</td>\n",
+              "      <td>DSL</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Month-to-month</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>Electronic check</td>\n",
+              "      <td>29.85</td>\n",
+              "      <td>29.85</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>Male</td>\n",
+              "      <td>0</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>34</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>DSL</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>One year</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Mailed check</td>\n",
+              "      <td>56.95</td>\n",
+              "      <td>1889.50</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>Male</td>\n",
+              "      <td>0</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>2</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>DSL</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Month-to-month</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>Mailed check</td>\n",
+              "      <td>53.85</td>\n",
+              "      <td>108.15</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>Male</td>\n",
+              "      <td>0</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>45</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No phone service</td>\n",
+              "      <td>DSL</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>One year</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Bank transfer (automatic)</td>\n",
+              "      <td>42.30</td>\n",
+              "      <td>1840.75</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>Female</td>\n",
+              "      <td>0</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>2</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Fiber optic</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>No</td>\n",
+              "      <td>Month-to-month</td>\n",
+              "      <td>Yes</td>\n",
+              "      <td>Electronic check</td>\n",
+              "      <td>70.70</td>\n",
+              "      <td>151.65</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-e8ca9919-5262-4731-8708-0ddeface5a8a')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-e8ca9919-5262-4731-8708-0ddeface5a8a button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-e8ca9919-5262-4731-8708-0ddeface5a8a');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "variable_name": "X",
+              "summary": "{\n  \"name\": \"X\",\n  \"rows\": 7032,\n  \"fields\": [\n    {\n      \"column\": \"gender\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"Male\",\n          \"Female\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"SeniorCitizen\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0,\n        \"min\": 0,\n        \"max\": 1,\n        \"num_unique_values\": 2,\n        \"samples\": [\n          1,\n          0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Partner\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"No\",\n          \"Yes\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Dependents\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"Yes\",\n          \"No\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"tenure\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 24,\n        \"min\": 1,\n        \"max\": 72,\n        \"num_unique_values\": 72,\n        \"samples\": [\n          8,\n          53\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"PhoneService\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"Yes\",\n          \"No\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"MultipleLines\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"No phone service\",\n          \"No\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"InternetService\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"DSL\",\n          \"Fiber optic\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"OnlineSecurity\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"No\",\n          \"Yes\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"OnlineBackup\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"Yes\",\n          \"No\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"DeviceProtection\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"No\",\n          \"Yes\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"TechSupport\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"No\",\n          \"Yes\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"StreamingTV\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"No\",\n          \"Yes\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"StreamingMovies\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"No\",\n          \"Yes\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Contract\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"Month-to-month\",\n          \"One year\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"PaperlessBilling\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"No\",\n          \"Yes\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"PaymentMethod\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 4,\n        \"samples\": [\n          \"Mailed check\",\n          \"Credit card (automatic)\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"MonthlyCharges\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 30.08597388404983,\n        \"min\": 18.25,\n        \"max\": 118.75,\n        \"num_unique_values\": 1584,\n        \"samples\": [\n          102.85,\n          20.05\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"TotalCharges\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 2266.7713618831453,\n        \"min\": 18.8,\n        \"max\": 8684.8,\n        \"num_unique_values\": 6530,\n        \"samples\": [\n          5594.0,\n          6840.95\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {},
+          "execution_count": 1
+        }
+      ],
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "\n",
+        "# Direct link to the public Telco Churn Dataset\n",
+        "url = \"https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv\"\n",
+        "df = pd.read_csv(url)\n",
+        "\n",
+        "# A little bit of cleanup: 'TotalCharges' has some hidden blank spaces, let's convert them to numbers\n",
+        "df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')\n",
+        "\n",
+        "# Drop rows where 'TotalCharges' is missing (only about 11 rows out of 7000+)\n",
+        "df.dropna(subset=['TotalCharges'], inplace=True)\n",
+        "\n",
+        "# Separate features (X) and target variable (y)\n",
+        "X = df.drop(['customerID', 'Churn'], axis=1) # customerID is useless for prediction\n",
+        "y = df['Churn'].map({'Yes': 1, 'No': 0})     # Convert Yes/No to 1/0\n",
+        "\n",
+        "print(\"Dataset Loaded! Shape of X:\", X.shape)\n",
+        "X.head()"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**Step 2: Build the Preprocessing Pipeline**"
+      ],
+      "metadata": {
+        "id": "UuT2jJXlRGUP"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.pipeline import Pipeline\n",
+        "from sklearn.compose import ColumnTransformer\n",
+        "from sklearn.impute import SimpleImputer\n",
+        "from sklearn.preprocessing import StandardScaler, OneHotEncoder\n",
+        "\n",
+        "# Split the data into training and testing sets\n",
+        "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n",
+        "\n",
+        "# 1. Pipeline for Numerical Features (Fill missing values, then scale)\n",
+        "numeric_features = ['tenure', 'MonthlyCharges', 'TotalCharges']\n",
+        "numeric_transformer = Pipeline(steps=[\n",
+        "    ('imputer', SimpleImputer(strategy='median')),\n",
+        "    ('scaler', StandardScaler())\n",
+        "])\n",
+        "\n",
+        "# 2. Pipeline for Categorical Features (Fill missing, then One-Hot Encode)\n",
+        "categorical_features = X.select_dtypes(include=['object']).columns.tolist()\n",
+        "categorical_transformer = Pipeline(steps=[\n",
+        "    ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),\n",
+        "    ('onehot', OneHotEncoder(handle_unknown='ignore'))\n",
+        "])\n",
+        "\n",
+        "# Combine both into a single preprocessor step\n",
+        "preprocessor = ColumnTransformer(\n",
+        "    transformers=[\n",
+        "        ('num', numeric_transformer, numeric_features),\n",
+        "        ('cat', categorical_transformer, categorical_features)\n",
+        "    ])\n",
+        "\n",
+        "print(\"Preprocessing Pipeline Built Successfully!\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Jw8VAwr3RF_1",
+        "outputId": "886f1c31-2ed4-48fc-de27-87543a1e7c0b"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Preprocessing Pipeline Built Successfully!\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**Step 3: Combine with Model & Tune with GridSearch**"
+      ],
+      "metadata": {
+        "id": "tP4r6M-ZRpi-"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.ensemble import RandomForestClassifier\n",
+        "from sklearn.model_selection import GridSearchCV\n",
+        "\n",
+        "# Create the full end-to-end pipeline\n",
+        "pipeline = Pipeline(steps=[\n",
+        "    ('preprocessor', preprocessor),\n",
+        "    ('classifier', RandomForestClassifier(random_state=42))\n",
+        "])\n",
+        "\n",
+        "# Define the hyperparameters we want to test\n",
+        "param_grid = {\n",
+        "    'classifier__n_estimators': [50, 100, 200], # Number of trees in the forest\n",
+        "    'classifier__max_depth': [None, 10, 20],    # Maximum depth of the trees\n",
+        "}\n",
+        "\n",
+        "# Run GridSearch to find the best combination\n",
+        "print(\"Starting Grid Search... (This might take about 30 seconds)\")\n",
+        "grid_search = GridSearchCV(pipeline, param_grid, cv=3, n_jobs=-1, scoring='accuracy')\n",
+        "grid_search.fit(X_train, y_train)\n",
+        "\n",
+        "print(f\"Grid Search Complete! Best Parameters: {grid_search.best_params_}\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "hW7KoeKXRyNo",
+        "outputId": "0e0fd6b8-851e-4a50-dedd-3b6b7846bc08"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Starting Grid Search... (This might take about 30 seconds)\n",
+            "Grid Search Complete! Best Parameters: {'classifier__max_depth': 10, 'classifier__n_estimators': 100}\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**Step 4: Evaluate and Export**"
+      ],
+      "metadata": {
+        "id": "g7bve7IzTe9j"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.metrics import accuracy_score, classification_report\n",
+        "import joblib\n",
+        "\n",
+        "# Make predictions using the best model found by GridSearch\n",
+        "y_pred = grid_search.predict(X_test)\n",
+        "\n",
+        "# Evaluate the results\n",
+        "accuracy = accuracy_score(y_test, y_pred)\n",
+        "print(f\"Test Accuracy: {accuracy * 100:.2f}%\\n\")\n",
+        "print(\"Classification Report:\\n\", classification_report(y_test, y_pred))\n",
+        "\n",
+        "# Export the complete, tuned pipeline\n",
+        "pipeline_filename = 'churn_prediction_pipeline.joblib'\n",
+        "joblib.dump(grid_search.best_estimator_, pipeline_filename)\n",
+        "\n",
+        "print(f\"Pipeline successfully exported as '{pipeline_filename}'!\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "6xasaOErTjTC",
+        "outputId": "87d832ad-9238-4fcb-a52a-f3996879b3e2"
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Test Accuracy: 78.96%\n",
+            "\n",
+            "Classification Report:\n",
+            "               precision    recall  f1-score   support\n",
+            "\n",
+            "           0       0.83      0.90      0.86      1033\n",
+            "           1       0.63      0.49      0.55       374\n",
+            "\n",
+            "    accuracy                           0.79      1407\n",
+            "   macro avg       0.73      0.69      0.71      1407\n",
+            "weighted avg       0.78      0.79      0.78      1407\n",
+            "\n",
+            "Pipeline successfully exported as 'churn_prediction_pipeline.joblib'!\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**Final Summary / Insights**\n",
+        "\n",
+        "* **Pipeline Efficiency:**  Utilizing Scikit-Learn's Pipeline API alongside ColumnTransformer allowed for clean, leak-proof data preprocessing. Categorical and numerical features were handled seamlessly in a single flow.\n",
+        "\n",
+        "* **Model Performance:** After hyperparameter tuning with GridSearchCV, the Random Forest classifier achieved a robust accuracy on the testing set.\n",
+        "\n",
+        "* **Production Readiness**: The entire process—from missing value imputation and scaling to the final predictive model—has been packaged and exported as a .joblib file. This means the model can instantly accept raw data in a production environment without needing separate preprocessing scripts."
+      ],
+      "metadata": {
+        "id": "PhQZRGl1VE9F"
+      }
+    }
+  ]
+}
